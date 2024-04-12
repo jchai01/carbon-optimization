@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Carbon Optimization System</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <!-- include Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+
+    <!-- include font awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+                           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+                           crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/@bopen/leaflet-area-selection@0.6.1/dist/index.css" />
+
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <!-- leaflet.draw -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" integrity="sha512-ozq8xQKq6urvuU6jNgkfqAmT7jKN2XumbrX1JiB3TnF7tI48DPI4Gy1GXKD/V3EExgAs1V+pRO7vwtS1LHg0Gw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw-src.css" integrity="sha512-vJfMKRRm4c4UupyPwGUZI8U651mSzbmmPgR3sdE3LcwBPsdGeARvUM5EcSTg34DK8YIRiIo+oJwNfZPMKEQyug==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="scripts/L.Geoserver.js" defer></script>
+    <script src="scripts/script.js" defer></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="https://cdn.rawgit.com/hayeswise/Leaflet.PointInPolygon/v1.0.0/wise-leaflet-pip.js" defer></script>
+
+  </head>
+  <body>
+
+    <!-- modal -->
+    <div id="customize-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+
+        <header class="modal-card-head">
+          <p class="modal-card-title">Customize</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+
+        <section class="modal-card-body">
+
+          <!-- <label class="label">Growth Stage</label> -->
+          <!-- <input class="input" type="text" placeholder="Enter Growth stage" /> -->
+
+          <label class="label">Oak</label>
+          <input id="tree0" class="input" type="text" placeholder="Enter price" />
+          <label class="label">Yellow Poplar</label>
+          <input id="tree1" class="input" type="text" placeholder="Enter price" />
+          <label class="label">Silver Maple</label>
+          <input id="tree2" class="input" type="text" placeholder="Enter price" />
+          <label class="label">Horse Chestnut</label>
+          <input id="tree3" class="input" type="text" placeholder="Enter price" />
+          <label class="label">Native Red Mulberry</label>
+          <input id="tree4" class="input" type="text" placeholder="Enter price" />
+        </section>
+
+        <footer class="modal-card-foot">
+          <div class="buttons">
+            <button class="button is-success" onclick="customizeSaveChanges()">Save changes</button>
+            <button class="button">Cancel</button>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+
+    <div id="select-tree-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+
+        <header class="modal-card-head">
+          <p class="modal-card-title">Customize</p>
+          <button class="delete" aria-label="close"></button>
+        </header>
+
+        <section class="modal-card-body">
+
+          <!-- <label class="label">Growth Stage</label> -->
+          <!-- <input class="input" type="text" placeholder="Enter Growth stage" /> -->
+
+          <label class="label">Oak</label>
+          <input id="tree0" class="input" type="text" placeholder="Enter price" />
+          <label class="label">Yellow Poplar</label>
+        </section>
+
+        <footer class="modal-card-foot">
+          <div class="buttons">
+            <button class="button is-success" onclick="selectTree()">Select</button>
+            <button class="button">Cancel</button>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+      <symbol id="icon-arrow-left" viewBox="0 0 24 24">
+      <path d="M15.422 16.594 14.016 18l-6-6 6-6 1.406 1.406L10.828 12z" />
+      </symbol>
+      <symbol id="icon-clear" viewBox="0 0 24 24">
+      <path d="M18.984 6.422 13.406 12l5.578 5.578-1.406 1.406L12 13.406l-5.578 5.578-1.406-1.406L10.594 12 5.016 6.422l1.406-1.406L12 10.594l5.578-5.578z" />
+      </symbol> 
+      <symbol id="icon-email" viewBox="0 0 24 24">
+      <path
+          d="M20.016 8.016V6L12 11.016 3.984 6v2.016L12 12.985zm0-4.032q.797 0 1.383.609t.586 1.406v12q0 .797-.586 1.406t-1.383.609H3.985q-.797 0-1.383-.609t-.586-1.406v-12q0-.797.586-1.406t1.383-.609h16.031z"
+          />
+      </symbol>
+      <symbol id="icon-menu" viewBox="0 0 24 24">
+      <path
+          d="M3 13h18a1 1 0 0 0 0-2H3a1 1 0 0 0 0 2zm0-6h18a1 1 0 0 0 0-2H3a1 1 0 0 0 0 2zm0 12h18a1 1 0 0 0 0-2H3a1 1 0 0 0 0 2z"
+          />
+      </symbol>
+      <symbol id="icon-person" viewBox="0 0 24 24">
+      <path
+          d="M12 14.016q2.531 0 5.273 1.102t2.742 2.883v2.016H3.984v-2.016q0-1.781 2.742-2.883t5.273-1.102zM12 12q-1.641 0-2.813-1.172T8.015 8.015t1.172-2.836T12 3.984t2.813 1.195 1.172 2.836-1.172 2.813T12 12z"
+          />
+      </symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24">
+      <path
+          d="M12 15.516q1.453 0 2.484-1.031t1.031-2.484-1.031-2.484T12 8.486 9.516 9.517t-1.031 2.484 1.031 2.484T12 15.516zm7.453-2.532 2.109 1.641q.328.234.094.656L19.64 18.75q-.188.328-.609.188l-2.484-.984q-.984.703-1.688.984l-.375 2.625q-.094.422-.469.422H9.984q-.375 0-.469-.422l-.375-2.625q-.891-.375-1.688-.984l-2.484.984q-.422.141-.609-.188l-2.016-3.469q-.234-.422.094-.656l2.109-1.641q-.047-.328-.047-.984t.047-.984L2.437 9.375q-.328-.234-.094-.656L4.359 5.25q.188-.328.609-.188l2.484.984q.984-.703 1.688-.984l.375-2.625q.094-.422.469-.422h4.031q.375 0 .469.422l.375 2.625q.891.375 1.688.984l2.484-.984q.422-.141.609.188l2.016 3.469q.234.422-.094.656l-2.109 1.641q.047.328.047.984t-.047.984z"
+          />
+      </symbol>
+    </svg>
+
+    <div class="sidebar">
+      <button aria-label="close sidebar" type="button" class="close-button">
+        <svg>
+          <use xlink:href="#icon-clear" />
+        </svg>
+      </button>
+
+      <ul class="sidebar-menu">
+        <li class="menu-item" data-item="menu">
+          <svg><use xlink:href="#icon-menu"></use></svg>
+        </li>
+        <li class="menu-item" data-item="person">
+          <svg><use xlink:href="#icon-person"></use></svg>
+        </li>
+        <li class="menu-item" data-item="email">
+          <svg><use xlink:href="#icon-email"></use></svg>
+        </li>
+        <li class="menu-item" data-item="settings">
+          <svg><use xlink:href="#icon-settings"></use></svg>
+        </li>
+      </ul>
+
+      <div class="sidebar-content">
+
+        <div class="item-content" id="menu">
+          <h2>Land For Development</h2>
+          <div class="content">
+            <button class="button" type="button" onclick="prevState()">
+              <span class="icon">
+                <i class="fas fa-arrow-left"></i>
+              </span>
+            </button>
+
+              <!-- state 0: page starts with county list to choose -->
+              <div class="hidden county-list is-active">
+
+              <div class="panel">
+                <p class="panel-heading">Select county:</p>
+                  <!-- <p class="control has-icons-left"> -->
+                  <!-- <input class="input" type="text" placeholder="Search"> -->
+                  <!-- <span class="icon is-left"> -->
+                  <!--   <i class="fas fa-search" aria-hidden="true"></i> -->
+                  <!-- </span> -->
+                  <!-- </p> -->
+
+                  <a class="panel-block" onclick="nextState('CORK')">
+                    <span class="panel-icon">
+                      <i class="fas fa-book" aria-hidden="true"></i>
+                    </span> Cork
+                  </a>
+
+                  <a class="panel-block" onclick="nextState('DUBLIN')">
+                    <span class="panel-icon">
+                      <i class="fas fa-book" aria-hidden="true"></i>
+                    </span> Dublin
+                  </a>
+
+                  <a class="panel-block" onclick="nextState('CLARE')">
+                    <span class="panel-icon">
+                      <i class="fas fa-book" aria-hidden="true"></i>
+                    </span> Clare
+                  </a>
+
+              </div>
+            </div>
+
+            <!-- state 1: list all locations -->
+            <div class="hidden location-list">
+              <div class="panel">
+                <p class="panel-heading">Select location:</p>
+                <div class="panel-block">
+                  <p class="control has-icons-left">
+                  <input class="input" type="text" placeholder="Search">
+                  <span class="icon is-left">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                  </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- state 2: show details of location -->
+            <div class="hidden location-details">
+                <p id="objectid"></p>
+                <p id="folio"></p>
+                <p id="sp_id"></p>
+                <p id="property_1"></p>
+                <p id="plan"></p>
+                <p id="english"></p>
+                <p id="reg_owner"></p>
+                <p id="address"></p>
+                <p id="area_acres"></p>
+                <p id="area_hectares"></p>
+                <button class='button is-primary' id='develop'>Develop</button>
+                <button class='button is-primary' id='develop'>Generate Portfolio</button>
+            </div>
+
+            <!-- state 3: develop land -->
+            <div class="hidden develop-land">
+              <!-- land-id is the objectid of the land to be developed -->
+              <div id="land-id"></div>
+
+              <button class='button' onclick="setTree(0)">Oak</button>
+              <button class='button' onclick="setTree(1)">Yellow Poplar</button>
+              <button class='button' onclick="setTree(2)">Silver Maple</button>
+              <button class='button' onclick="setTree(3)">horse chestnut</button>
+              <button class='button' onclick="setTree(4)">Native Red Mulberry</button>
+
+              <br><br>
+              <button class='button customize-modal-trigger' data-target="customize-modal">Customize</button>
+              <br><br>
+              <button class='button is-primary' onclick='calculate()'>Calculate</button>
+              <br><br>
+              <div class="hidden calculation">
+                <p>Estimated Carbon Stock in 10 years: 10,000 MT CO2</p>
+                <p id="upfront_cost"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item-content" id="person">
+          <h2>Person</h2>
+          <div class="content">
+            person - Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+            Omnis, a.
+          </div>
+        </div>
+
+        <div class="item-content" id="email">
+          <h2>Tree planting options</h2>
+          <div class="content">
+            Plant trees option
+          </div>
+        </div>
+
+        <div class="item-content" id="settings">
+          <h2>Settings</h2>
+          <div class="content">settings</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- <div class="marker-position">Click/hover on polygon</div> -->
+    <div id="map"></div>
+  </body>
+</html>
